@@ -14,6 +14,7 @@ export class App extends React.Component {
     socket: "",
     playerMark: "",
     isPlayerOne: false,
+    boardState: [],
   };
 
   componentDidMount() {
@@ -28,28 +29,21 @@ export class App extends React.Component {
 
     socketInstance.on("room-full", (msg) => alert(msg));
 
-    // socketInstance.on("board-state", (board) => {
-    //   console.log("board", board);
-    //   // this.setState({ boardState: board });
-    // });
-  }
+    socketInstance.on("error", (msg) => alert(msg));
 
-  // componentDidUpdate() {
-  //   this.state.socket.on("board-state", (board) => {
-  //     console.log("board", board);
-  //   });
-  // }
+    socketInstance.on("board-state", (board) => {
+      this.setState({ boardState: board });
+    });
+  }
 
   initializeGame = () => {
     this.setState({ startGame: !this.state.startGame });
 
     this.state.socket.on("player-mark", (playerMark) => {
-      console.log("playerMark", playerMark);
       this.setState({ playerMark: playerMark });
     });
 
     this.state.socket.emit("start-game", this.state.playerName);
-    this.state.socket.on("error", (msg) => alert(msg));
   };
 
   setPlayerName = (e) => {
@@ -87,6 +81,7 @@ export class App extends React.Component {
               playerMark={this.state.playerMark}
               isPlayerOne={this.state.isPlayerOne}
               playerName={this.state.playerName}
+              boardState={this.state.boardState}
             ></Layout>
           )}
         </div>
