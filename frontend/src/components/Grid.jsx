@@ -10,24 +10,31 @@ export class Grid extends React.Component {
       ["", "", ""],
     ],
   };
+
   componentDidMount() {
-    // socket.on("player-turn", (playerID) = {
-    //   if(this.props.socket.id !== playerID) {
-    //   }
-    // })
+    this.props.socket.on("not-enough-players", (msg) => alert(msg));
+    this.props.socket.on("spot-taken", (msg) => {
+      console.log("msg", msg);
+      alert(msg);
+    });
+    this.props.socket.on("not-players-turn", (msg) => alert(msg));
+    this.props.socket.on("game-state", (msg) => alert(msg));
+    this.props.socket.on("player-won", (msg) => alert(`player ${msg} won`));
   }
 
   handleClick = (i, j, playerID) => {
     console.log("playerID", playerID);
     this.props.socket.emit("make-move", i, j, playerID);
-    this.props.socket.once("not-enough-players", (msg) => alert(msg));
+    // this.props.socket.on("not-enough-players", (msg) => alert(msg));
+    // this.props.socket.on("spot-taken", (msg) => {
+    //   console.log("msg", msg);
+    //   alert(msg);
+    // });
+    // this.props.socket.on("not-players-turn", (msg) => alert(msg));
+    // this.props.socket.on("game-state", (msg) => alert(msg));
+    // this.props.socket.on("player-won", (msg) => alert(`player ${msg} won`));
     // this.props.socket.removeListener("not-players-turn");
-    this.props.socket.once("spot-taken", (msg) => alert(msg));
-    this.props.socket.once("not-players-turn", (msg) => alert(msg));
-    this.props.socket.once("game-state", (msg) => alert(msg));
-    this.props.socket.once("player-won", (msg) => alert(`player ${msg} won`));
-    // this.props.socket.removeListener("not-players-turn");
-    this.props.socket.removeListener("spot-taken");
+    // this.props.socket.removeListener("spot-taken");
   };
 
   renderCell = (i, j) => {
