@@ -1,26 +1,24 @@
-const app = require('express')();
-const server = require('http').createServer(app);
-const io = require('socket.io')(server);
-const serverSocket = require("./socket.jsx");
+const express = require("express");
+const socketio = require("socket.io");
+const http = require("http");
+const cors = require("cors");
+const socketSession = require("./socketSession");
 
-// App setup
-const PORT = 4000;
+const PORT = process.env.PORT || 5000;
 
-// io.on('connection', serverSocket);
+const app = express();
+app.use(cors());
 
-io.on('connection', (socket) => {
-
-  console.log("Made socket connection");
-
-
-  socket.emit('message', 'TICTACTOE!');
-
-  socket.on('disconnect', () => {
-    console.log("User disconnected");
-  })
+const server = http.createServer(app);
+const io = socketio(server, {
+  cors: {
+    origin: "*",
+  },
 });
 
-server.listen(PORT, () => {
-  console.log(`Listening on port ${PORT}`);
-  console.log(`http://localhost:${PORT}`);
+// Listen to incoming client connections
+io.on("connection", (socket) => {
+  socketSession(socket, io);
 });
+
+server.listen(PORT, () => console.log(`Server has started on port:  ${PORT}`));

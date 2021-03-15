@@ -68,13 +68,14 @@ class TicTacToe {
   };
 
   // This method checks if 2 players exist and then initializes the board
-  startGame = () => {
+  startGame = (socket) => {
     if (
       this.playersToMark &&
       this.playersToMark.size !== 2 &&
       this.currentPlayer
     ) {
-      throw new Error("There needs to be 2 players");
+      socket.emit("error", "There needs to be 2 players");
+      return;
     } else {
       this.initializeBoard();
     }
@@ -156,14 +157,20 @@ class TicTacToe {
   // also checks if the winning condition is met after the move
   makeMove = (row, col, player, socket, io) => {
     if (this.playersToMark.size !== 2) {
-      throw new Error("You need one more player to play this game");
+      socket.emit(
+        "not-enough-players",
+        "You need one more player to play this game"
+      );
+      return;
     }
     if (this.board[row][col] !== "") {
-      throw new Error("The spot is already taken");
+      socket.emit("spot-taken", "The spot is already taken");
+      return;
     }
 
     if (this.currentPlayer !== player.id) {
-      throw new Error("It is not your turn");
+      socket.emit("not-players-turn", "It is not your turn");
+      return;
     }
 
     this.board[row][col] = this.playersToMark.get(player.id);
@@ -180,12 +187,12 @@ class TicTacToe {
     // Verify game state
     const stateofTheGame = this.getGameState();
     if (stateofTheGame === GameState.DRAW) {
-      console.log("Drawn - no player won");
+      io.emit("game-state", "Drawn - no player won");
     } else if (stateofTheGame === GameState.RUNNING) {
       return;
     } else {
-      // winning player ID
-      console.log("player-won", stateofTheGame);
+      // emit winning player name
+      io.emit("player-won", player.name);
     }
   };
 }

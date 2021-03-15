@@ -1,38 +1,98 @@
 import React from "react";
 import io from "socket.io-client";
-import { Layout } from "./components/Layout";
 import "bootstrap/dist/css/bootstrap.min.css";
-const ENDPOINT = "localhost:4000";
+import { Layout } from "./components/Layout";
+import "./App.css";
 
-function App() {
-  const socket = io(ENDPOINT);
-  console.log(socket);
+const ENDPOINT = "localhost:5000";
 
-  socket.on("message", (msg) => console.log(msg));
-
-  React.useEffect(() => {
-    socket.on("message", (msg) => console.log(msg));
-  });
-
-  const [startGame, setStartGame] = React.useState(true);
-
-  const initializeGame = () => {
-    setStartGame(!startGame);
-    socket.on("message", (msg) => console.log(msg));
-
-    // socket.emit("create-session");
+export class App extends React.Component {
+  state = {
+    startGame: false,
+    playerName: "",
+    playerID: "",
+    socket: "",
+    playerMark: "",
+    isPlayerOne: false,
   };
 
-  return (
-    <div>
-      {startGame && (
-        <button className="btn btn-success" onClick={() => initializeGame()}>
-          Start Game
-        </button>
-      )}
-      {!startGame && <Layout socket={socket}></Layout>}
-    </div>
-  );
+  componentDidMount() {
+    const socketInstance = io(ENDPOINT);
+    this.setState({ socket: socketInstance });
+
+    socketInstance.on("player-connected", (playerID, isPlayerOne) => {
+      console.log(playerID);
+      this.setState({ playerID: playerID });
+      this.setState({ isPlayerOne: isPlayerOne });
+    });
+
+    socketInstance.on("room-full", (msg) => alert(msg));
+
+    // socketInstance.on("board-state", (board) => {
+    //   console.log("board", board);
+    //   // this.setState({ boardState: board });
+    // });
+  }
+
+  // componentDidUpdate() {
+  //   this.state.socket.on("board-state", (board) => {
+  //     console.log("board", board);
+  //   });
+  // }
+
+  initializeGame = () => {
+    this.setState({ startGame: !this.state.startGame });
+
+    this.state.socket.on("player-mark", (playerMark) => {
+      console.log("playerMark", playerMark);
+      this.setState({ playerMark: playerMark });
+    });
+
+    this.state.socket.emit("start-game", this.state.playerName);
+    this.state.socket.on("error", (msg) => alert(msg));
+  };
+
+  setPlayerName = (e) => {
+    this.setState({ playerName: e.target.value });
+  };
+
+  render() {
+    return (
+      <React.Fragment>
+        <div className="container col-md-4 text-center center">
+          {!this.state.startGame && (
+            <>
+              <h1> Tic Tac Toe Game!</h1>
+
+              <input
+                type="text"
+                className="form-control input-width"
+                placeholder="Enter player name"
+                onChange={(e) => this.setPlayerName(e)}
+              />
+              <button
+                className="btn btn-success"
+                onClick={() => this.initializeGame()}
+                disabled={this.state.playerName === ""}
+              >
+                Start Game
+              </button>
+            </>
+          )}
+
+          {this.state.startGame && (
+            <Layout
+              socket={this.state.socket}
+              player={this.state.playerID}
+              playerMark={this.state.playerMark}
+              isPlayerOne={this.state.isPlayerOne}
+              playerName={this.state.playerName}
+            ></Layout>
+          )}
+        </div>
+      </React.Fragment>
+    );
+  }
 }
 
 export default App;
