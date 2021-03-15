@@ -27,7 +27,7 @@ export class Grid extends React.Component {
     this.props.socket.once("game-state", (msg) => alert(msg));
     this.props.socket.once("player-won", (msg) => alert(`player ${msg} won`));
     // this.props.socket.removeListener("not-players-turn");
-    // this.props.socket.removeListener("spot-taken");
+    this.props.socket.removeListener("spot-taken");
   };
 
   renderCell = (i, j) => {

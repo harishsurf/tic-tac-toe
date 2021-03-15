@@ -7,17 +7,18 @@ const MAX_PLAYERS = 2;
 let tictactoeObj = new TicTacToe();
 
 const socketSession = (socket, io) => {
+  console.log("A client is now connected", socket.id);
+
+  // create a new player and assign the socket id as the player id
+  const newPlayer = {
+    id: socket.id,
+    name: "",
+  };
+
+  // add player to the array
+  players.push(newPlayer);
+
   if (players.length <= MAX_PLAYERS) {
-    console.log("A client is now connected", socket.id);
-
-    // create a new player and assign the socket id as the player id
-    const newPlayer = {
-      id: socket.id,
-      name: "",
-    };
-
-    // add player to the array
-    players.push(newPlayer);
     socket.emit(
       "player-connected",
       socket.id,
@@ -68,9 +69,12 @@ const socketSession = (socket, io) => {
     // socket listening for a client that disconnects
     socket.on("disconnect", () => {
       console.log("User has disconnected");
+
+      // remove the player once the client disconnects
       players.splice(findIndexForPlayer(socket.id), 1);
       socket.removeAllListeners("game-state");
       socket.removeAllListeners("player-won");
+      socket.removeAllListeners("room-full");
     });
   } else {
     // socket for emiting if the game already has 2 players
